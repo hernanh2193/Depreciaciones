@@ -1,0 +1,60 @@
+:root {
+  --azul: #0b2e59;
+  --azul-claro: #1d4f8c;
+  --naranja: #cc6600;
+  --texto: #1f2933;
+  --texto-suave: #5f6b7a;
+  --fondo: #f3f5f8;
+  --superficie: #ffffff;
+  --borde: #d9dee5;
+  --error: #b42318;
+  --ok: #067647;
+
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  color: var(--texto);
+  background: var(--fondo);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--fondo);
+}
+
+h1,
+h2 {
+  color: var(--azul);
+  margin: 0 0 0.75rem;
+}
+
+h1 {
+  font-size: 1.4rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+}
+
+input {
+  font: inherit;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  width: 100%;
+}
+
+input:focus {
+  outline: 2px solid var(--azul-claro);
+  outline-offset: 1px;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}

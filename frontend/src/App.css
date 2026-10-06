@@ -1,0 +1,262 @@
+/* ---------- Formularios ---------- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.btn-primario {
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.65rem;
+  font-weight: 600;
+}
+
+.btn-primario:hover:not(:disabled) {
+  background: var(--azul-claro);
+}
+
+.btn-primario:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--azul-claro);
+  text-decoration: underline;
+  padding: 0;
+  align-self: center;
+}
+
+.msg-error,
+.msg-ok {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  white-space: pre-line;
+}
+
+.msg-error {
+  color: var(--error);
+  background: #fef3f2;
+}
+
+.msg-ok {
+  color: var(--ok);
+  background: #ecfdf3;
+}
+
+/* ---------- Login ---------- */
+.login-fondo {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: linear-gradient(160deg, var(--azul) 0%, var(--azul-claro) 100%);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--superficie);
+  border-radius: 10px;
+  border-top: 6px solid var(--naranja);
+  padding: 1.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.login-encabezado {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.login-encabezado h1 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.login-empresa {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+/* ---------- Layout principal ---------- */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: var(--azul);
+  color: #fff;
+  border-bottom: 3px solid var(--naranja);
+}
+
+.barra-titulo {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.barra-usuario {
+  margin-left: auto;
+  font-size: 0.9rem;
+}
+
+.barra-usuario small {
+  opacity: 0.75;
+}
+
+.btn-salir {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+}
+
+.btn-menu {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+}
+
+.cuerpo {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.menu {
+  width: 250px;
+  flex-shrink: 0;
+  background: var(--superficie);
+  border-right: 1px solid var(--borde);
+  padding: 0.75rem 0;
+  overflow-y: auto;
+}
+
+.menu a {
+  display: block;
+  padding: 0.4rem 1rem;
+  color: var(--texto);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.menu a:hover {
+  background: var(--fondo);
+}
+
+.menu a.active {
+  background: #e8eef7;
+  color: var(--azul);
+  font-weight: 600;
+  border-left: 3px solid var(--naranja);
+}
+
+.menu a.pendiente {
+  color: var(--texto-suave);
+}
+
+.menu a.pendiente::after {
+  content: 'pendiente';
+  margin-left: 0.4rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--naranja);
+}
+
+.menu-grupo {
+  margin-top: 0.75rem;
+}
+
+.menu-grupo-titulo {
+  padding: 0.25rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--azul-claro);
+}
+
+.contenido {
+  flex: 1;
+  padding: 1.5rem;
+  min-width: 0;
+}
+
+.panel {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.nota {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.etiqueta {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--naranja);
+  font-weight: 700;
+}
+
+.cargando {
+  padding: 2rem;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+/* ---------- Móvil ---------- */
+@media (max-width: 760px) {
+  .btn-menu {
+    display: block;
+  }
+
+  .barra-usuario small {
+    display: none;
+  }
+
+  .menu {
+    display: none;
+    position: fixed;
+    top: 56px;
+    left: 0;
+    bottom: 0;
+    z-index: 10;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .menu.abierto {
+    display: block;
+  }
+
+  .contenido {
+    padding: 1rem;
+  }
+}
