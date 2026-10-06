@@ -1,0 +1,25 @@
+﻿# Dependencias
+node_modules/
+
+# Builds
+dist/
+build/
+coverage/
+
+# Variables de entorno (credenciales)
+.env
+.env.*
+!.env.example
+
+# Logs y sistema
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Sistema Java legado (tiene su propio repo en Bitbucket)
+Depreciaciones/
