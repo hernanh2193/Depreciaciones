@@ -59,15 +59,43 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   /** Ejecuta INSERT/UPDATE/DELETE o un bloque PL/SQL con autocommit. */
-  async execute(
+  async execute<T = unknown>(
     sql: string,
     binds: oracledb.BindParameters = {},
-  ): Promise<oracledb.Result<unknown>> {
+  ): Promise<oracledb.Result<T>> {
     const conn = await this.pool.getConnection();
     try {
-      return await conn.execute(sql, binds, { autoCommit: true });
+      return await conn.execute<T>(sql, binds, { autoCommit: true });
+    } finally {
+      await conn.close();
+    }
+  }
+
+  /** Ejecuta varias sentencias en una sola transacción: commit si todo sale bien, rollback si falla. */
+  async transaction<T>(fn: (conn: oracledb.Connection) => Promise<T>): Promise<T> {
+    const conn = await this.pool.getConnection();
+    try {
+      const result = await fn(conn);
+      await conn.commit();
+      return result;
+    } catch (err) {
+      await conn.rollback();
+      throw err;
     } finally {
       await conn.close();
     }
   }
 }
+
+/** Código ORA-xxxxx de un error de Oracle, o de un texto que lo contenga (p. ej. la salida de un procedimiento). */
+export function codigoOracle(err: unknown): number | undefined {
+  if (typeof err === 'object' && err !== null && 'errorNum' in err) {
+    return Number((err as { errorNum: number }).errorNum) || undefined;
+  }
+  const texto = typeof err === 'string' ? err : err instanceof Error ? err.message : '';
+  const m = /ORA-(\d{5})/.exec(texto);
+  return m ? Number(m[1]) : undefined;
+}
+
+export const ORA_REGISTRO_DUPLICADO = 1;
+export const ORA_PADRE_NO_EXISTE = 2291;
