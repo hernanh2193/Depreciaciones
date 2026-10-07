@@ -65,7 +65,7 @@ export function CambiarClaveForm({ usuario: usuarioInicial, claveActual: actualI
           value={claveNueva}
           onChange={(e) => setClaveNueva(e.target.value)}
           minLength={8}
-          maxLength={30}
+          maxLength={20}
           autoComplete="new-password"
           autoFocus={!!actualInicial}
           required
@@ -78,7 +78,7 @@ export function CambiarClaveForm({ usuario: usuarioInicial, claveActual: actualI
           value={confirmacion}
           onChange={(e) => setConfirmacion(e.target.value)}
           minLength={8}
-          maxLength={30}
+          maxLength={20}
           autoComplete="new-password"
           required
         />

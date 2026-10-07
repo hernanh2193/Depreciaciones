@@ -11,7 +11,8 @@ export class CambiarClaveDto {
   @MaxLength(30)
   claveActual: string;
 
+  // DEP_USUARIOS.USU_PASSWORD es VARCHAR2(20)
   @IsString()
-  @Length(8, 30, { message: 'La nueva clave debe tener entre 8 y 30 caracteres' })
+  @Length(8, 20, { message: 'La nueva clave debe tener entre 8 y 20 caracteres' })
   claveNueva: string;
 }
