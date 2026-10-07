@@ -15,6 +15,10 @@ interface Props<T> {
   cargando?: boolean
   error?: string
   vacio?: string
+  /** Si se indica, las filas son clicables. */
+  onFila?: (fila: T) => void
+  /** Ocultar el buscador interno (cuando la búsqueda se hace en el servidor). */
+  sinBuscador?: boolean
 }
 
 const normalizar = (s: string) =>
@@ -23,7 +27,17 @@ const normalizar = (s: string) =>
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
 
-export function TablaDatos<T>({ columnas, filas, clave, textoBusqueda, cargando, error, vacio = 'Sin registros' }: Props<T>) {
+export function TablaDatos<T>({
+  columnas,
+  filas,
+  clave,
+  textoBusqueda,
+  cargando,
+  error,
+  vacio = 'Sin registros',
+  onFila,
+  sinBuscador,
+}: Props<T>) {
   const [filtro, setFiltro] = useState('')
 
   const visibles = useMemo(() => {
@@ -43,13 +57,15 @@ export function TablaDatos<T>({ columnas, filas, clave, textoBusqueda, cargando,
   return (
     <div className="tabla-contenedor">
       <div className="tabla-barra">
-        <input
-          type="search"
-          placeholder="Buscar…"
-          value={filtro}
-          onChange={(e) => setFiltro(e.target.value)}
-          aria-label="Buscar en la tabla"
-        />
+        {!sinBuscador && (
+          <input
+            type="search"
+            placeholder="Buscar…"
+            value={filtro}
+            onChange={(e) => setFiltro(e.target.value)}
+            aria-label="Buscar en la tabla"
+          />
+        )}
         <span className="tabla-conteo">
           {filas ? `${visibles.length} de ${filas.length} registros` : ''}
         </span>
@@ -82,7 +98,13 @@ export function TablaDatos<T>({ columnas, filas, clave, textoBusqueda, cargando,
               </tr>
             )}
             {visibles.map((fila) => (
-              <tr key={clave(fila)}>
+              <tr
+                key={clave(fila)}
+                className={onFila ? 'fila-clic' : undefined}
+                onClick={onFila ? () => onFila(fila) : undefined}
+                onKeyDown={onFila ? (e) => e.key === 'Enter' && onFila(fila) : undefined}
+                tabIndex={onFila ? 0 : undefined}
+              >
                 {columnas.map((c) => (
                   <td key={c.titulo} className={c.alinear ? `al-${c.alinear}` : undefined}>
                     {c.celda(fila)}
