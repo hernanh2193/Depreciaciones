@@ -8,7 +8,8 @@ import { ConfigService } from '@nestjs/config';
 import oracledb from 'oracledb';
 
 /**
- * Pool de conexiones a Oracle (modo thin, no requiere Instant Client).
+ * Pool de conexiones a Oracle. Por defecto modo thin (sin Instant Client);
+ * con ORACLE_CLIENT_DIR usa modo thick.
  * Usar siempre bind variables (:nombre) en lugar de concatenar valores en el SQL.
  */
 @Injectable()
@@ -19,6 +20,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly config: ConfigService) {}
 
   async onModuleInit() {
+    // Modo thick: necesario si el usuario de BD tiene verificador de clave 10G (error NJS-116).
+    const clientDir = this.config.get<string>('ORACLE_CLIENT_DIR');
+    if (clientDir) {
+      oracledb.initOracleClient({ libDir: clientDir });
+      this.logger.log(`Modo thick con Oracle Client en ${clientDir}`);
+    }
+
     const host = this.config.getOrThrow<string>('DB_HOST');
     const port = this.config.get<string>('DB_PORT', '1521');
     const service = this.config.getOrThrow<string>('DB_SERVICE');

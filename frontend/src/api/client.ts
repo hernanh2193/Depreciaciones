@@ -37,7 +37,11 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   if (!res.ok) {
     // NestJS devuelve { message: string | string[] }
     const msg = body?.message
-    const message = Array.isArray(msg) ? msg.join('\n') : msg || 'Solicitud no pudo ser procesada'
+    // Sin cuerpo JSON y con 502/503/504: el backend no está corriendo o no responde
+    const sinServidor = !body && res.status >= 502 && res.status <= 504
+    const message = Array.isArray(msg)
+      ? msg.join('\n')
+      : msg || (sinServidor ? 'No se pudo conectar con el servidor' : 'Solicitud no pudo ser procesada')
     if (res.status === 401 && token) onUnauthorized()
     throw new ApiError(res.status, message)
   }
