@@ -580,6 +580,35 @@ textarea {
   cursor: pointer;
 }
 
+.tarjeta-boton {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tarjeta-boton:disabled {
+  cursor: default;
+}
+
+.tarjeta-boton:hover:not(:disabled) {
+  border-color: var(--azul-claro);
+}
+
+.tarjeta-boton .tarjeta-valor {
+  display: block;
+}
+
+.tarjeta-alerta {
+  border-color: #fedf89;
+  background: #fffaeb;
+}
+
+.lista-aviso {
+  margin: 0;
+  padding-left: 1.2rem;
+  flex-basis: 100%;
+}
+
 .fila-clic:focus-visible {
   outline: 2px solid var(--azul-claro);
   outline-offset: -2px;

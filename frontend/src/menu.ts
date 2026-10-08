@@ -57,7 +57,7 @@ export const MENU: GrupoMenu[] = [
   },
   {
     titulo: 'Procesos',
-    opciones: [pendiente('Generar depreciación', '/procesos/generar', [A, O])],
+    opciones: [migrado('Generar depreciación', '/procesos/generar', [A, O])],
   },
   {
     titulo: 'Consultas',

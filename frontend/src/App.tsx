@@ -13,6 +13,7 @@ import { RelacionesPage } from './pages/catalogos/RelacionesPage'
 import { InicioPage } from './pages/InicioPage'
 import { LoginPage } from './pages/LoginPage'
 import { PendientePage } from './pages/PendientePage'
+import { GenerarDepreciacionPage } from './pages/procesos/GenerarDepreciacionPage'
 import './App.css'
 
 function RequiereSesion({ children }: { children: ReactNode }) {
@@ -82,6 +83,7 @@ function App() {
               }
             />
             <Route path="activos/:id" element={<ActivoDetallePage />} />
+            <Route path="procesos/generar" element={<GenerarDepreciacionPage />} />
             {/* Las opciones aún no migradas caen aquí */}
             <Route path="*" element={<PendientePage />} />
           </Route>
