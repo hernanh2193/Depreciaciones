@@ -98,6 +98,44 @@ export class DatosActivoDto {
 export class CrearActivoDto extends DatosActivoDto {
   @IsInt({ message: 'Debe seleccionar la relación de cuentas' })
   relacion: number;
+
+  /**
+   * Registro con ajuste: mes (YYYY-MM) en el que se registra de una vez la depreciación atrasada.
+   * null = registro normal.
+   */
+  @Transform(nuloSiVacio)
+  @IsOptional()
+  @Matches(/^\d{4}-(0[1-9]|1[0-2])$/, { message: 'Mes de proceso del ajuste no válido' })
+  mesProcesoAjuste: string | null = null;
+}
+
+/** Traslado a otra relación de cuentas (DEP_GENERACION_TRASLADO + DEP_DOC_DOCUMENTO). */
+export class TrasladarActivoDto {
+  @IsInt({ message: 'Debe seleccionar la relación de cuentas destino' })
+  relacion: number;
+
+  /** 1 = TRASLADO, 2 = AJUSTE (valores del sistema Java). */
+  @IsIn([1, 2], { message: 'Tipo de documento no válido' })
+  tipo: 1 | 2;
+
+  @Transform(recortar)
+  @IsString()
+  @IsNotEmpty({ message: 'Debe ingresar el número de documento' })
+  @MaxLength(200, { message: 'El documento admite máximo 200 caracteres' })
+  documento: string;
+
+  @Matches(FECHA, { message: 'Fecha del documento no válida' })
+  fecha: string;
+
+  @IsInt({ message: 'Debe ingresar el código del empleado que autoriza' })
+  @Min(1)
+  autoriza: number;
+
+  @Transform(recortar)
+  @IsString()
+  @IsNotEmpty({ message: 'Debe ingresar el motivo del traslado' })
+  @MaxLength(400, { message: 'El motivo admite máximo 400 caracteres' })
+  motivo: string;
 }
 
 export class ActualizarActivoDto extends DatosActivoDto {

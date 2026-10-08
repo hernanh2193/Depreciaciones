@@ -52,7 +52,7 @@ export const MENU: GrupoMenu[] = [
       migrado('Registro de activos', '/activos/registro', [A, O]),
       migrado('Modificación de activos', '/activos/modificacion', [A, O]),
       migrado('Otros porcentajes activos', '/activos/otros-porcentajes', [A, O]),
-      pendiente('Traslado de activos', '/activos/traslado', [A, O]),
+      migrado('Traslado de activos', '/activos/traslado', [A, O]),
     ],
   },
   {

@@ -23,7 +23,7 @@ interface Props {
   titulo: string
   descripcion: string
   /** Pestaña de la ficha que se abre al elegir un activo. */
-  pestana?: 'datos' | 'otro'
+  pestana?: 'datos' | 'otro' | 'traslado'
 }
 
 /** Búsqueda de activos en el servidor (por número, tarjeta o texto de la descripción). */
@@ -85,7 +85,7 @@ export function BuscarActivosPage({ titulo, descripcion, pestana = 'datos' }: Pr
         error={error}
         sinBuscador
         vacio="No se encontraron activos"
-        onFila={(a) => navigate(`/activos/${a.correlativo}${pestana === 'otro' ? '?pestana=otro' : ''}`)}
+        onFila={(a) => navigate(`/activos/${a.correlativo}${pestana === 'datos' ? '' : `?pestana=${pestana}`}`)}
       />
     </section>
   )

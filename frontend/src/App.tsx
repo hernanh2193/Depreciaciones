@@ -70,6 +70,17 @@ function App() {
                 />
               }
             />
+            <Route
+              path="activos/traslado"
+              element={
+                <BuscarActivosPage
+                  key="traslado"
+                  titulo="Traslado de activos"
+                  descripcion="Busque un activo ACTIVO para trasladarlo a otra relación de cuentas."
+                  pestana="traslado"
+                />
+              }
+            />
             <Route path="activos/:id" element={<ActivoDetallePage />} />
             {/* Las opciones aún no migradas caen aquí */}
             <Route path="*" element={<PendientePage />} />

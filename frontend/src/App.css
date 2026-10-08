@@ -429,6 +429,22 @@ select {
 }
 
 /* ---------- Activos ---------- */
+fieldset.ajuste {
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 1.5rem;
+}
+
+fieldset.ajuste .nota {
+  flex-basis: 100%;
+  margin: 0;
+}
+
 textarea {
   font: inherit;
   padding: 0.55rem 0.7rem;

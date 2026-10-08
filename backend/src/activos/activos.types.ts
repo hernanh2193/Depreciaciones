@@ -40,6 +40,9 @@ export interface Activo {
   fechaCrea: string | null;
   usuarioMod: string | null;
   fechaMod: string | null;
+  /** Correlativo del activo nuevo si este fue trasladado (CRTL_CORRELA_NUE). */
+  trasladadoA: number | null;
+  observacion: string | null;
   /** Depreciación acumulada del último mes generado (0 si no hay detalle). */
   depreciacionAcumulada: number;
   valorLibros: number | null;

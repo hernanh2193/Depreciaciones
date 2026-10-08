@@ -7,6 +7,7 @@ import {
   BuscarActivosDto,
   CrearActivoDto,
   CrearOtroPorcentajeDto,
+  TrasladarActivoDto,
 } from './dto/activos.dto.js';
 
 /** Registro y mantenimiento de activos. Solo Administrador y Operador, como en el menú Java. */
@@ -19,6 +20,12 @@ export class ActivosController {
   @Get('relaciones')
   relaciones() {
     return this.activos.relaciones();
+  }
+
+  /** Empleado que autoriza un traslado (vista RHEPQ.EMP_DEPRECIA_USUARIOS). */
+  @Get('empleados/:codigo')
+  empleado(@Param('codigo', ParseIntPipe) codigo: number) {
+    return this.activos.empleado(codigo);
   }
 
   @Get()
@@ -72,5 +79,21 @@ export class ActivosController {
   @HttpCode(200)
   regenerarConOtroPorcentaje(@Param('id', ParseIntPipe) id: number, @Req() req: RequestConUsuario) {
     return this.activos.regenerarConOtroPorcentaje(id, req.user.sub);
+  }
+
+  @Get(':id/traslado/vista')
+  vistaTraslado(@Param('id', ParseIntPipe) id: number, @Query('relacion', ParseIntPipe) relacion: number) {
+    return this.activos.vistaTraslado(id, relacion);
+  }
+
+  @Get(':id/traslados')
+  documentosTraslado(@Param('id', ParseIntPipe) id: number) {
+    return this.activos.documentosTraslado(id);
+  }
+
+  @Post(':id/traslado')
+  @HttpCode(201)
+  trasladar(@Param('id', ParseIntPipe) id: number, @Body() dto: TrasladarActivoDto, @Req() req: RequestConUsuario) {
+    return this.activos.trasladar(id, dto, req.user.sub);
   }
 }

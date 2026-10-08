@@ -14,8 +14,9 @@ import { useDatos } from '../../hooks/useDatos'
 import { fecha, moneda, porcentaje } from '../../utils/formato'
 import { CamposActivo } from './CamposActivo'
 import { aDatos, desdeActivo, type FormActivo } from './formActivo'
+import { PestanaTraslado } from './PestanaTraslado'
 
-type Pestana = 'datos' | 'depreciacion' | 'otro'
+type Pestana = 'datos' | 'depreciacion' | 'otro' | 'traslado'
 type Mensaje = { tipo: 'ok' | 'error'; texto: string } | null
 
 const textoError = (err: unknown) => (err instanceof ApiError ? err.message : 'No se pudo conectar con el servidor')
@@ -37,6 +38,11 @@ export function ActivoDetallePage() {
         </p>
         <h1>Activo {id}</h1>
         {activo && <p className="nota texto-recortado-2">{activo.descripcion}</p>}
+        {activo?.trasladadoA && (
+          <p className="aviso">
+            Trasladado al <Link to={`/activos/${activo.trasladadoA}`}>activo No. {activo.trasladadoA}</Link>
+          </p>
+        )}
       </header>
 
       {cargando && <p className="cargando">Cargando…</p>}
@@ -51,6 +57,7 @@ export function ActivoDetallePage() {
                 ['datos', 'Datos'],
                 ['depreciacion', `Depreciación (${activo.mesesGenerados} meses)`],
                 ['otro', `Otro porcentaje${activo.tieneOtroPorcentaje ? ' ●' : ''}`],
+                ['traslado', `Traslado${activo.trasladadoA ? ' ●' : ''}`],
               ] as [Pestana, string][]
             ).map(([clave, titulo]) => (
               <button
@@ -67,6 +74,7 @@ export function ActivoDetallePage() {
           {pestana === 'datos' && <PestanaDatos key={activo.fechaMod ?? ''} activo={activo} onCambio={recargar} />}
           {pestana === 'depreciacion' && <PestanaDepreciacion activo={activo} onCambio={recargar} />}
           {pestana === 'otro' && <PestanaOtro activo={activo} onCambio={recargar} />}
+          {pestana === 'traslado' && <PestanaTraslado key={activo.correlativo} activo={activo} onCambio={recargar} />}
         </>
       )}
     </section>
