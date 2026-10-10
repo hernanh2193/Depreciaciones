@@ -26,6 +26,13 @@ const pendiente = (titulo: string, ruta: string, roles: Rol[]): OpcionMenu => ({
   migrado: false,
 })
 
+const migrado = (titulo: string, ruta: string, roles: Rol[]): OpcionMenu => ({
+  titulo,
+  ruta,
+  roles,
+  migrado: true,
+})
+
 export const MENU: GrupoMenu[] = [
   {
     titulo: 'Administrar',
@@ -37,14 +44,14 @@ export const MENU: GrupoMenu[] = [
   {
     titulo: 'Catálogos',
     opciones: [
-      pendiente('Cuenta principal', '/catalogos/cuentas', [A, O, C]),
-      pendiente('Sub cuenta', '/catalogos/subcuentas', [A, O, C]),
-      pendiente('División cuenta', '/catalogos/division-cuentas', [A, O, C]),
-      pendiente('Unificar cuenta', '/catalogos/relacion-cuentas', [A, O, C]),
-      pendiente('Periodos', '/catalogos/periodos', [A, O]),
-      pendiente('Registro de activos', '/activos/registro', [A, O]),
-      pendiente('Modificación de activos', '/activos/modificacion', [A, O]),
-      pendiente('Otros porcentajes activos', '/activos/otros-porcentajes', [A, O]),
+      migrado('Cuenta principal', '/catalogos/cuentas', [A, O, C]),
+      migrado('Sub cuenta', '/catalogos/subcuentas', [A, O, C]),
+      migrado('División cuenta', '/catalogos/division-cuentas', [A, O, C]),
+      migrado('Unificar cuenta', '/catalogos/relacion-cuentas', [A, O, C]),
+      migrado('Periodos', '/catalogos/periodos', [A, O]),
+      migrado('Registro de activos', '/activos/registro', [A, O]),
+      migrado('Modificación de activos', '/activos/modificacion', [A, O]),
+      migrado('Otros porcentajes activos', '/activos/otros-porcentajes', [A, O]),
       pendiente('Traslado de activos', '/activos/traslado', [A, O]),
     ],
   },
