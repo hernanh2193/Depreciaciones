@@ -146,4 +146,83 @@ export class ProcesosRepository {
     );
     return ((r.outBinds as { clave: string | null }).clave ?? '').trim();
   }
+
+  // ---------------- Poner al día ----------------
+
+  /** Periodo vigente hoy, con el mismo criterio de los procedimientos (MAX correlativo con inicio <= hoy <= final). */
+  async periodoActual(): Promise<number | null> {
+    const r = await this.db.query<{ CODPER: number | null }>(
+      `SELECT per_codper codper FROM depreciaciones.dep_per_periodo
+        WHERE per_correlativo = (SELECT MAX(per_correlativo) FROM depreciaciones.dep_per_periodo
+                                  WHERE TRUNC(per_fecha_inicio) <= TRUNC(SYSDATE) AND TRUNC(per_fecha_final) >= TRUNC(SYSDATE))`,
+    );
+    return r[0]?.CODPER ?? null;
+  }
+
+  /** Activos en estado A de la cuenta con su situación respecto al periodo vigente. */
+  atrasados(cuenta: number, actual: number): Promise<ActivoAtrasado[]> {
+    return this.db.query<ActivoAtrasado>(
+      `WITH b AS (
+         SELECT e.crtl_correlativo id, SUBSTR(e.crtl_descripcion, 1, 200) descripcion,
+                TO_CHAR(e.crtl_fecha_inicio, 'YYYY-MM-DD') inicio, e.crtl_valor_mensual mensual,
+                (SELECT MAX(d.det_codper) FROM depreciaciones.dep_detctrl_depreciacion d WHERE d.det_codcrtl = e.crtl_correlativo) ultimo,
+                (SELECT COUNT(*) FROM depreciaciones.dep_per_periodo p
+                  WHERE TRUNC(p.per_fecha_inicio) = TRUNC(e.crtl_fecha_inicio, 'MM')) periodo_inicio
+           FROM depreciaciones.dep_control_depreciacion e
+           JOIN depreciaciones.dep_detrel_cuentas a ON a.rel_codigo = e.crtl_codrel_cta
+          WHERE e.crtl_estado = 'A' AND a.rel_codcta = :cuenta
+            AND TO_CHAR(e.crtl_fecha_inicio, 'RRRRMM') < :actual)
+       SELECT b.id "correlativo", b.descripcion "descripcion", b.inicio "fechaInicio", b.mensual "valorMensual",
+              b.ultimo "ultimoPeriodo",
+              CASE WHEN b.ultimo IS NULL THEN NULL
+                   ELSE (SELECT per_correlativo FROM depreciaciones.dep_per_periodo WHERE per_codper = :actual) - pu.per_correlativo
+              END "mesesFaltantes",
+              CASE WHEN b.periodo_inicio = 1 THEN 1 ELSE 0 END "tienePeriodoInicio"
+         FROM b LEFT JOIN depreciaciones.dep_per_periodo pu ON pu.per_codper = b.ultimo
+        WHERE b.ultimo IS NULL OR b.ultimo < :actual
+        ORDER BY b.id`,
+      { cuenta, actual },
+    );
+  }
+
+  /** Códigos de periodo en orden, desde el siguiente a `desde` hasta `hasta` inclusive. */
+  async periodosEntre(desde: number, hasta: number): Promise<number[]> {
+    const r = await this.db.query<{ CODPER: number }>(
+      `SELECT per_codper codper FROM depreciaciones.dep_per_periodo
+        WHERE per_correlativo > (SELECT per_correlativo FROM depreciaciones.dep_per_periodo WHERE per_codper = :desde)
+          AND per_correlativo <= (SELECT per_correlativo FROM depreciaciones.dep_per_periodo WHERE per_codper = :hasta)
+        ORDER BY per_correlativo`,
+      { desde, hasta },
+    );
+    return r.map((x) => x.CODPER);
+  }
+
+  /**
+   * Genera toda la depreciación de un activo SIN detalle desde su fecha de inicio hasta el mes vigente
+   * (DEP_GENERACION_MES, el mismo procedimiento del registro de activos). Devuelve P_CLAVE.
+   */
+  async generarDesdeInicio(usuario: string, correlativo: number, fechaInicio: string): Promise<string> {
+    const r = await this.db.execute<unknown>(
+      `BEGIN depreciaciones.dep_generacion_mes(:usuario, :correlativo, TO_DATE(:fecha, 'YYYY-MM-DD'), :clave); END;`,
+      {
+        usuario,
+        correlativo,
+        fecha: `${fechaInicio.slice(0, 7)}-01`,
+        clave: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2000 },
+      },
+    );
+    return ((r.outBinds as { clave: string | null }).clave ?? '').trim();
+  }
+}
+
+export interface ActivoAtrasado {
+  correlativo: number;
+  descripcion: string;
+  fechaInicio: string | null;
+  valorMensual: number;
+  ultimoPeriodo: number | null;
+  /** Meses entre su último mes generado y el periodo vigente (null si no tiene detalle). */
+  mesesFaltantes: number | null;
+  /** 1 si existe el periodo que inicia el día 1 de su mes de inicio (DEP_GENERACION_MES lo necesita). */
+  tienePeriodoInicio: number;
 }

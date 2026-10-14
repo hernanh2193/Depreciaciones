@@ -45,7 +45,49 @@ export interface ResultadoProceso {
   esperados: number
 }
 
+export interface ActivoAtrasado {
+  correlativo: number
+  descripcion: string
+  fechaInicio: string | null
+  valorMensual: number
+  ultimoPeriodo: number | null
+  mesesFaltantes: number | null
+  tienePeriodoInicio: number
+}
+
+export interface VistaPonerAlDia {
+  cuenta: number
+  periodoActual: number
+  sinDetalle: ActivoAtrasado[]
+  atrasados: ActivoAtrasado[]
+  periodos: number[]
+  mesesEstimados: number
+  bloqueos: string[]
+}
+
+export interface EstadoPonerAlDia {
+  cuenta: number
+  usuario: string
+  inicio: string
+  fin: string | null
+  fase: 'sin-detalle' | 'mensual' | 'terminado' | 'error'
+  avance: number
+  total: number
+  detalle: string
+  activosCompletados: number
+  periodosProcesados: number
+  errores: string[]
+}
+
 export const procesosApi = {
+  vistaPonerAlDia: (cuenta: number) => api<VistaPonerAlDia>(`/procesos/depreciacion/poner-al-dia/vista?cuenta=${cuenta}`),
+  iniciarPonerAlDia: (cuenta: number) =>
+    api<EstadoPonerAlDia>('/procesos/depreciacion/poner-al-dia', { method: 'POST', body: JSON.stringify({ cuenta }) }),
+  /** null si no se ha ejecutado desde que arrancó el servidor (la API responde {}). */
+  estadoPonerAlDia: async () => {
+    const e = await api<Partial<EstadoPonerAlDia>>('/procesos/depreciacion/poner-al-dia/estado')
+    return e.cuenta === undefined ? null : (e as EstadoPonerAlDia)
+  },
   resumen: () => api<ResumenCuenta[]>('/procesos/depreciacion/resumen'),
   vista: (cuenta: number, periodo: number) =>
     api<VistaProceso>(`/procesos/depreciacion/vista?cuenta=${cuenta}&periodo=${periodo}`),

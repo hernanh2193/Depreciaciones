@@ -603,6 +603,25 @@ textarea {
   background: #fffaeb;
 }
 
+.acciones-fila {
+  display: inline-flex;
+  gap: 1rem;
+  white-space: nowrap;
+}
+
+.progreso {
+  height: 12px;
+  border-radius: 999px;
+  background: #e8eef7;
+  overflow: hidden;
+}
+
+.progreso-barra {
+  height: 100%;
+  background: linear-gradient(90deg, var(--azul-claro), var(--azul));
+  transition: width 0.4s ease;
+}
+
 .lista-aviso {
   margin: 0;
   padding-left: 1.2rem;

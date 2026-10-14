@@ -12,6 +12,7 @@ import {
 import { TablaDatos, type Columna } from '../../components/TablaDatos'
 import { useDatos } from '../../hooks/useDatos'
 import { fecha, moneda } from '../../utils/formato'
+import { PonerAlDiaPanel } from './PonerAlDiaPanel'
 
 const textoError = (err: unknown) => (err instanceof ApiError ? err.message : 'No se pudo conectar con el servidor')
 const periodoTexto = (p: number | null) => (p ? `${String(p).slice(4)}/${String(p).slice(0, 4)}` : '—')
@@ -54,6 +55,8 @@ export function GenerarDepreciacionPage() {
   const [aceptado, setAceptado] = useState(false)
   const [cargando, setCargando] = useState(false)
   const [msg, setMsg] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null)
+  const [ponerAlDia, setPonerAlDia] = useState<number | null>(null)
+  const recargarResumen = resumen.recargar
 
   const filas = useMemo(
     () => (vista ? (filtro ? vista.activos.filter((a) => a.categoria === filtro) : vista.activos) : null),
@@ -134,9 +137,14 @@ export function GenerarDepreciacionPage() {
           {
             titulo: '',
             celda: (r) => (
-              <button type="button" className="btn-link" onClick={() => elegir(r.cuenta, r.siguientePeriodo)}>
-                Revisar siguiente
-              </button>
+              <span className="acciones-fila">
+                <button type="button" className="btn-link" onClick={() => elegir(r.cuenta, r.siguientePeriodo)}>
+                  Revisar siguiente
+                </button>
+                <button type="button" className="btn-link" onClick={() => setPonerAlDia(r.cuenta)}>
+                  Poner al día
+                </button>
+              </span>
             ),
           },
         ]}
@@ -146,6 +154,15 @@ export function GenerarDepreciacionPage() {
         error={resumen.error}
         sinBuscador
       />
+
+      {ponerAlDia !== null && (
+        <PonerAlDiaPanel
+          key={ponerAlDia}
+          cuenta={ponerAlDia}
+          onCerrar={() => setPonerAlDia(null)}
+          onTerminado={recargarResumen}
+        />
+      )}
 
       <form className="panel form-linea" onSubmit={enviarConsulta}>
         <label className="crece">
