@@ -84,8 +84,8 @@ export const MENU: GrupoMenu[] = [
   {
     titulo: 'Gráficas',
     opciones: [
-      pendiente('Gráfica por cuenta', '/graficas/cuenta', [A, O, C]),
-      pendiente('Compras de activos x año', '/graficas/compras', [A, O, C]),
+      migrado('Gráfica por cuenta', '/graficas/cuenta', [A, O, C]),
+      migrado('Compras de activos x año', '/graficas/compras', [A, O, C]),
     ],
   },
 ]
