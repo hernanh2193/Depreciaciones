@@ -47,3 +47,17 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   }
   return body as T
 }
+
+/** Descarga un archivo (p. ej. un PDF) con el token de sesión. Los errores vienen como JSON de NestJS. */
+export async function apiArchivo(path: string): Promise<{ blob: Blob; nombre: string }> {
+  const token = tokenStorage.get()
+  const res = await fetch(`/api${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    const msg = body?.message
+    if (res.status === 401 && token) onUnauthorized()
+    throw new ApiError(res.status, Array.isArray(msg) ? msg.join('\n') : msg || 'No se pudo generar el archivo')
+  }
+  const nombre = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'reporte.pdf'
+  return { blob: await res.blob(), nombre }
+}

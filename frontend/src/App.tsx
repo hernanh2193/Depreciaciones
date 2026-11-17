@@ -16,6 +16,7 @@ import { ConsultaActivoPage } from './pages/consultas/ConsultaActivoPage'
 import { ConsultaActivosPage } from './pages/consultas/ConsultaActivosPage'
 import { ConsultaDepreciacionesPage } from './pages/consultas/ConsultaDepreciacionesPage'
 import { PendientePage } from './pages/PendientePage'
+import { ReporteRuta } from './pages/reportes/ReporteRuta'
 import { GenerarDepreciacionPage } from './pages/procesos/GenerarDepreciacionPage'
 import './App.css'
 
@@ -122,6 +123,7 @@ function App() {
             />
             <Route path="consultas/depreciaciones" element={<ConsultaDepreciacionesPage />} />
             <Route path="consultas/activo/:id" element={<ConsultaActivoPage />} />
+            <Route path="reportes/:clave" element={<ReporteRuta />} />
             {/* Las opciones aún no migradas caen aquí */}
             <Route path="*" element={<PendientePage />} />
           </Route>

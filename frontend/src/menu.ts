@@ -71,14 +71,14 @@ export const MENU: GrupoMenu[] = [
   {
     titulo: 'Reportes',
     opciones: [
-      pendiente('Catálogo de cuentas', '/reportes/catalogo-cuentas', [A, O, C, AU]),
-      pendiente('Relación de cuentas', '/reportes/relacion-cuentas', [A, O, C, AU]),
-      pendiente('Depreciación activos', '/reportes/depreciacion-activos', [A, O, C, AU]),
-      pendiente('Activos por cuenta', '/reportes/activos-por-cuenta', [A, O, C, AU]),
-      pendiente('Acumulado mensual', '/reportes/acumulado-mensual', [A, O, C, AU]),
-      pendiente('Resumen por cuenta mensual', '/reportes/resumen-cuenta', [A, O, C, AU]),
-      pendiente('Resumen depreciación mensual', '/reportes/resumen', [A, O, C, AU]),
-      pendiente('Consolidación por año', '/reportes/consolidacion', [A, O, C, AU]),
+      migrado('Catálogo de cuentas', '/reportes/catalogo-cuentas', [A, O, C, AU]),
+      migrado('Relación de cuentas', '/reportes/relacion-cuentas', [A, O, C, AU]),
+      migrado('Depreciación activos', '/reportes/depreciacion-activo', [A, O, C, AU]),
+      migrado('Activos por cuenta', '/reportes/activos-por-cuenta', [A, O, C, AU]),
+      migrado('Acumulado mensual', '/reportes/acumulado-mensual', [A, O, C, AU]),
+      migrado('Resumen por cuenta mensual', '/reportes/resumen-cuenta', [A, O, C, AU]),
+      migrado('Resumen depreciación mensual', '/reportes/resumen-mensual', [A, O, C, AU]),
+      migrado('Consolidación por año', '/reportes/consolidacion', [A, O, C, AU]),
     ],
   },
   {

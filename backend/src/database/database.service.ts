@@ -37,11 +37,16 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       connectString: `${host}:${port}/${service}`,
       poolMin: 1,
       poolMax: 10,
-      // Los procedimientos hacen TO_DATE(<parámetro DATE>, 'DD/MM/RRRR'): Oracle convierte la fecha a texto
-      // con el formato de la sesión. Se fija para no depender de la configuración regional del servidor.
+      // Formato de la sesión fijo para no depender de la configuración regional del servidor:
+      // - Los procedimientos hacen TO_DATE(<parámetro DATE>, 'DD/MM/RRRR'): Oracle convierte la fecha a texto
+      //   con NLS_DATE_FORMAT.
+      // - Funciones como MesIncremento/MesFinaliza convierten números a texto: con territorio SPAIN usarían coma
+      //   decimal ("127,33, 22,5") y se confundiría con la coma separadora. Java usaba punto decimal.
       // oracledb exige invocar el callback (no basta con una función async: la conexión nunca se entregaría).
       sessionCallback: (conn: oracledb.Connection, _tag: string, listo: (err?: Error) => void) => {
-        conn.execute(`ALTER SESSION SET NLS_DATE_FORMAT = 'DD/MM/RRRR'`).then(() => listo(), listo);
+        conn
+          .execute(`ALTER SESSION SET NLS_DATE_FORMAT = 'DD/MM/RRRR' NLS_NUMERIC_CHARACTERS = '.,'`)
+          .then(() => listo(), listo);
       },
     });
     this.logger.log(`Pool Oracle creado (${host}:${port}/${service})`);
