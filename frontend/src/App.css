@@ -603,6 +603,108 @@ textarea {
   background: #fffaeb;
 }
 
+/* ---------- Gráficas ---------- */
+.graficos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1rem;
+}
+
+.grafico {
+  margin: 0;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 0.9rem 1rem 0.5rem;
+  min-width: 0;
+}
+
+.grafico-titulo {
+  font-weight: 700;
+  color: var(--azul);
+  margin-bottom: 0.4rem;
+}
+
+.grafico-lienzo {
+  position: relative;
+  width: 100%;
+}
+
+.grafico-lienzo svg {
+  display: block;
+  overflow: visible;
+}
+
+.grafico-grid {
+  stroke: #e6e8eb;
+  stroke-width: 1;
+}
+
+.grafico-base {
+  stroke: #9aa5b1;
+  stroke-width: 1;
+}
+
+.grafico-eje {
+  font-size: 11px;
+  fill: var(--texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.grafico-cat {
+  font-size: 12px;
+  fill: var(--texto);
+}
+
+.grafico-valor {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.grafico-hit {
+  fill: transparent;
+}
+
+.grafico-resalte {
+  fill: #f2f5f9;
+}
+
+.grafico-marca {
+  outline: none;
+  cursor: default;
+}
+
+.grafico-marca:focus-visible .grafico-resalte {
+  fill: #e3ebf5;
+}
+
+.grafico-tooltip {
+  position: absolute;
+  pointer-events: none;
+  min-width: 140px;
+  max-width: 180px;
+  background: #1f2933;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.grafico-tooltip span {
+  font-variant-numeric: tabular-nums;
+}
+
+.fila-total td {
+  font-weight: 700;
+  background: #f2f2f2;
+}
+
 .visor-pdf {
   width: 100%;
   height: 75vh;
