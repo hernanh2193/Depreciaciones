@@ -713,6 +713,16 @@ textarea {
   background: #525659;
 }
 
+.btn-chico {
+  padding: 0.25rem 0.75rem !important;
+  font-size: 0.8rem;
+}
+
+a.btn-primario {
+  text-decoration: none;
+  display: inline-block;
+}
+
 a.btn-secundario {
   text-decoration: none;
   display: inline-block;

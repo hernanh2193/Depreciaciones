@@ -10,6 +10,7 @@ import { DatabaseModule } from './database/database.module.js';
 import { GraficasModule } from './graficas/graficas.module.js';
 import { ProcesosModule } from './procesos/procesos.module.js';
 import { ReportesModule } from './reportes/reportes.module.js';
+import { UsuariosModule } from './usuarios/usuarios.module.js';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ReportesModule } from './reportes/reportes.module.js';
     ConsultasModule,
     ReportesModule,
     GraficasModule,
+    UsuariosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

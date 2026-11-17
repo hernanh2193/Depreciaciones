@@ -19,13 +19,7 @@ export interface GrupoMenu {
 
 const { ADMINISTRADOR: A, OPERADOR: O, CONSULTAS: C, AUDITORIA: AU } = Rol
 
-const pendiente = (titulo: string, ruta: string, roles: Rol[]): OpcionMenu => ({
-  titulo,
-  ruta,
-  roles,
-  migrado: false,
-})
-
+// Todas las opciones del menú Java ya están migradas. Para una opción nueva aún sin pantalla, usar migrado: false.
 const migrado = (titulo: string, ruta: string, roles: Rol[]): OpcionMenu => ({
   titulo,
   ruta,
@@ -37,8 +31,8 @@ export const MENU: GrupoMenu[] = [
   {
     titulo: 'Administrar',
     opciones: [
-      pendiente('Nuevo usuario', '/admin/usuarios/nuevo', [A]),
-      pendiente('Editar usuarios', '/admin/usuarios', [A]),
+      // En Java eran "Nuevo usuario" y "Editar usuarios"; ahora una sola pantalla con "Crear usuario" y "Editar"
+      migrado('Usuarios', '/admin/usuarios', [A]),
     ],
   },
   {
