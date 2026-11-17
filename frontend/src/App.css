@@ -603,6 +603,27 @@ textarea {
   background: #fffaeb;
 }
 
+.datos-activo {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem 1.25rem;
+  margin: 0;
+  padding: 1rem 1.25rem;
+}
+
+.datos-activo dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--texto-suave);
+}
+
+.datos-activo dd {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
+  word-break: break-word;
+}
+
 .acciones-fila {
   display: inline-flex;
   gap: 1rem;

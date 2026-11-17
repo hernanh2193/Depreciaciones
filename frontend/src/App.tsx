@@ -12,6 +12,9 @@ import { PeriodosPage } from './pages/catalogos/PeriodosPage'
 import { RelacionesPage } from './pages/catalogos/RelacionesPage'
 import { InicioPage } from './pages/InicioPage'
 import { LoginPage } from './pages/LoginPage'
+import { ConsultaActivoPage } from './pages/consultas/ConsultaActivoPage'
+import { ConsultaActivosPage } from './pages/consultas/ConsultaActivosPage'
+import { ConsultaDepreciacionesPage } from './pages/consultas/ConsultaDepreciacionesPage'
 import { PendientePage } from './pages/PendientePage'
 import { GenerarDepreciacionPage } from './pages/procesos/GenerarDepreciacionPage'
 import './App.css'
@@ -84,6 +87,41 @@ function App() {
             />
             <Route path="activos/:id" element={<ActivoDetallePage />} />
             <Route path="procesos/generar" element={<GenerarDepreciacionPage />} />
+            <Route
+              path="consultas/buscar-activo"
+              element={
+                <ConsultaActivosPage
+                  key="buscar"
+                  modo="buscar"
+                  titulo="Buscador de activos"
+                  descripcion="Busque activos por número, tarjeta o descripción, y filtre por cuenta, relación o estado."
+                />
+              }
+            />
+            <Route
+              path="consultas/activos"
+              element={
+                <ConsultaActivosPage
+                  key="relacion"
+                  modo="relacion"
+                  titulo="Consulta relación cuentas"
+                  descripcion="Activos de una relación de cuentas (cuenta / subcuenta / división), con sus totales."
+                />
+              }
+            />
+            <Route
+              path="consultas/cuenta"
+              element={
+                <ConsultaActivosPage
+                  key="cuenta"
+                  modo="cuenta"
+                  titulo="Consulta de cuenta x activos"
+                  descripcion="Activos de una cuenta principal ordenados por subcuenta y división, con sus totales."
+                />
+              }
+            />
+            <Route path="consultas/depreciaciones" element={<ConsultaDepreciacionesPage />} />
+            <Route path="consultas/activo/:id" element={<ConsultaActivoPage />} />
             {/* Las opciones aún no migradas caen aquí */}
             <Route path="*" element={<PendientePage />} />
           </Route>

@@ -62,10 +62,10 @@ export const MENU: GrupoMenu[] = [
   {
     titulo: 'Consultas',
     opciones: [
-      pendiente('Buscador de activos', '/consultas/buscar-activo', [A, O, C, AU]),
-      pendiente('Consulta relación cuentas', '/consultas/activos', [A, O, C, AU]),
-      pendiente('Consulta de cuenta x activos', '/consultas/cuenta', [A, O, C, AU]),
-      pendiente('Consulta de depreciaciones', '/consultas/depreciaciones', [A, O, C, AU]),
+      migrado('Buscador de activos', '/consultas/buscar-activo', [A, O, C, AU]),
+      migrado('Consulta relación cuentas', '/consultas/activos', [A, O, C, AU]),
+      migrado('Consulta de cuenta x activos', '/consultas/cuenta', [A, O, C, AU]),
+      migrado('Consulta de depreciaciones', '/consultas/depreciaciones', [A, O, C, AU]),
     ],
   },
   {
