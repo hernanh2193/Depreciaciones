@@ -86,6 +86,7 @@ export class ActivosRepository {
               e.crtl_marca "marca", e.crtl_modelo "modelo", e.crtl_serie "serie", e.crtl_anio "anio",
               e.crtl_usuario_crea "usuarioCrea", TO_CHAR(e.crtl_fecha_crea, 'YYYY-MM-DD') "fechaCrea",
               e.crtl_usuario_mod "usuarioMod", TO_CHAR(e.crtl_fecha_mod, 'YYYY-MM-DD') "fechaMod",
+              e.crtl_correla_nue "trasladadoA", e.crtl_observacion "observacion",
               NVL(u.det_deprecia_acum, 0) "depreciacionAcumulada", u.det_valor_libros "valorLibros",
               (SELECT COUNT(*) FROM depreciaciones.dep_detctrl_depreciacion x WHERE x.det_codcrtl = e.crtl_correlativo) "mesesGenerados",
               (SELECT COUNT(*) FROM depreciaciones.dep_porcanterior_depreciacion p WHERE p.por_codcrtl = e.crtl_correlativo) tiene_otro
@@ -141,6 +142,97 @@ export class ActivosRepository {
   }
 
   /**
+   * AJUSTE2 busca el periodo cuya FECHA FINAL cae en el mes de proceso (SELECT INTO: debe haber exactamente uno)
+   * y AJUSTE3 continúa desde el periodo que INICIA el día 1 de ese mes.
+   */
+  async periodosDelMesDeProceso(mes: string): Promise<{ porFechaFinal: number; queIniciaElDia1: number }> {
+    const r = await this.db.query<{ FINAL: number; INICIO: number }>(
+      `SELECT (SELECT COUNT(*) FROM depreciaciones.dep_per_periodo WHERE TO_CHAR(per_fecha_final, 'YYYY-MM') = :mes) final,
+              (SELECT COUNT(*) FROM depreciaciones.dep_per_periodo
+                WHERE TRUNC(per_fecha_inicio) = TO_DATE(:mes || '-01', 'YYYY-MM-DD')) inicio
+         FROM dual`,
+      { mes },
+    );
+    return { porFechaFinal: r[0].FINAL, queIniciaElDia1: r[0].INICIO };
+  }
+
+  /** Datos necesarios para trasladar: meses generados y el periodo siguiente al último generado. */
+  async infoTraslado(correlativo: number): Promise<{
+    mesesGenerados: number;
+    ultimoPeriodo: number | null;
+    siguientePeriodo: number | null;
+  }> {
+    const r = await this.db.query<{ MESES: number; ULTIMO: number | null; SIGUIENTE: number | null }>(
+      `SELECT d.meses, d.ultimo,
+              (SELECT s.per_codper FROM depreciaciones.dep_per_periodo s
+                WHERE s.per_correlativo = (SELECT p.per_correlativo + 1 FROM depreciaciones.dep_per_periodo p
+                                            WHERE p.per_codper = d.ultimo)) siguiente
+         FROM (SELECT COUNT(*) meses, MAX(det_codper) ultimo
+                 FROM depreciaciones.dep_detctrl_depreciacion WHERE det_codcrtl = :correlativo) d`,
+      { correlativo },
+    );
+    return { mesesGenerados: r[0].MESES, ultimoPeriodo: r[0].ULTIMO, siguientePeriodo: r[0].SIGUIENTE };
+  }
+
+  async empleado(codigo: number): Promise<{ codigo: number; nombre: string } | null> {
+    const r = await this.db.query<{ codigo: number; nombre: string }>(
+      `SELECT codigo "codigo", TRIM(nombre || ' ' || apellido) "nombre"
+         FROM rhepq.emp_deprecia_usuarios WHERE codigo = :codigo`,
+      { codigo },
+    );
+    return r[0] ?? null;
+  }
+
+  documentosTraslado(correlativo: number): Promise<DocumentoTraslado[]> {
+    return this.db.query<DocumentoTraslado>(
+      `SELECT ddoc_correla_ant "activoAnterior", ddoc_correla_nue "activoNuevo", ddoc_tipdocto "tipo",
+              ddoc_documento "documento", TO_CHAR(ddoc_fecha, 'YYYY-MM-DD') "fecha",
+              ddoc_cod_autoriza "autoriza", ddoc_motivo_traslado "motivo",
+              ddoc_usuario_crea "usuario", TO_CHAR(ddoc_fecha_crea, 'YYYY-MM-DD') "fechaRegistro"
+         FROM depreciaciones.dep_doc_documento
+        WHERE ddoc_correla_ant = :correlativo OR ddoc_correla_nue = :correlativo`,
+      { correlativo },
+    );
+  }
+
+  /**
+   * DEP_GENERACION_TRASLADO crea el activo nuevo en la relación destino, le pasa la depreciación acumulada,
+   * marca el original como D y registra el documento. Devuelve el correlativo del activo nuevo.
+   */
+  trasladar(
+    correlativo: number,
+    relacion: number,
+    doc: { tipo: number; documento: string; fecha: string; autoriza: number; motivo: string },
+    usuario: string,
+  ): Promise<number | null> {
+    return this.db.transaction(async (conn) => {
+      const r = await conn.execute<unknown>(
+        `BEGIN depreciaciones.dep_generacion_traslado(:usuario, :correlativo, :relacion, :tipo, :documento,
+                 TO_DATE(:fecha, 'YYYY-MM-DD'), :autoriza, :motivo, :clave); END;`,
+        {
+          usuario,
+          correlativo,
+          relacion,
+          tipo: doc.tipo,
+          documento: doc.documento,
+          fecha: doc.fecha,
+          autoriza: doc.autoriza,
+          motivo: doc.motivo,
+          clave: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2000 },
+        },
+      );
+      const clave = ((r.outBinds as { clave: string | null }).clave ?? '').trim();
+      if (clave !== '0') throw new ErrorGeneracion(clave);
+      const nuevo = await conn.execute<{ NUEVO: number | null }>(
+        `SELECT crtl_correla_nue nuevo FROM depreciaciones.dep_control_depreciacion WHERE crtl_correlativo = :correlativo`,
+        { correlativo },
+        OBJ,
+      );
+      return nuevo.rows?.[0]?.NUEVO ?? null;
+    });
+  }
+
+  /**
    * Inserta el activo y genera su depreciación en la MISMA transacción: el procedimiento hace COMMIT
    * (confirma ambos) o ROLLBACK (descarta ambos). Java confirmaba el activo antes de generar, y si la
    * generación fallaba quedaba un activo sin depreciación.
@@ -148,6 +240,7 @@ export class ActivosRepository {
   crear(
     datos: DatosActivo & { relacion: number; valorMensual: number; factor: number },
     usuario: string,
+    mesProcesoAjuste: string | null = null,
   ): Promise<{ correlativo: number; clave: string }> {
     return this.db.transaction(async (conn) => {
       const r = await conn.execute<{ N: number }>(
@@ -186,7 +279,9 @@ export class ActivosRepository {
           anio: datos.anio,
         },
       );
-      const clave = await this.generar(conn, 'dep_generacion_mes', usuario, correlativo, datos.fechaInicio);
+      const clave = mesProcesoAjuste
+        ? await this.generarAjuste(conn, usuario, correlativo, datos.fechaInicio, `${mesProcesoAjuste}-01`)
+        : await this.generar(conn, 'dep_generacion_mes', usuario, correlativo, datos.fechaInicio);
       return { correlativo, clave };
     });
   }
@@ -277,6 +372,34 @@ export class ActivosRepository {
   }
 
   /**
+   * Registro con ajuste (lo que Java intentó con 5 parámetros sobre el procedimiento equivocado):
+   * DEP_GENERACION_DEPRE_AJUSTE2 inserta UNA fila con los meses atrasados en el mes de proceso y llama a
+   * DEP_GENERACION_DEPRE_AJUSTE3 para generar mes a mes desde ahí hasta el mes actual.
+   */
+  private async generarAjuste(
+    conn: oracledb.Connection,
+    usuario: string,
+    correlativo: number,
+    fechaInicio: string,
+    fechaProceso: string,
+  ): Promise<string> {
+    const r = await conn.execute<unknown>(
+      `BEGIN depreciaciones.dep_generacion_depre_ajuste2(:usuario, :correlativo,
+               TO_DATE(:inicio, 'YYYY-MM-DD'), TO_DATE(:proceso, 'YYYY-MM-DD'), :clave); END;`,
+      {
+        usuario,
+        correlativo,
+        inicio: `${fechaInicio.slice(0, 7)}-01`,
+        proceso: fechaProceso,
+        clave: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2000 },
+      },
+    );
+    const clave = ((r.outBinds as { clave: string | null }).clave ?? '').trim();
+    if (clave !== '0') throw new ErrorGeneracion(clave);
+    return clave;
+  }
+
+  /**
    * Llama al procedimiento de generación dentro de la transacción abierta y devuelve P_CLAVE.
    * Si no devuelve '0' se lanza un error para que DatabaseService.transaction haga ROLLBACK.
    */
@@ -300,6 +423,18 @@ export class ActivosRepository {
     if (clave !== '0') throw new ErrorGeneracion(clave);
     return clave;
   }
+}
+
+export interface DocumentoTraslado {
+  activoAnterior: number;
+  activoNuevo: number;
+  tipo: number | null;
+  documento: string | null;
+  fecha: string | null;
+  autoriza: number | null;
+  motivo: string | null;
+  usuario: string | null;
+  fechaRegistro: string | null;
 }
 
 /** El procedimiento de generación devolvió un código de error en P_CLAVE. */

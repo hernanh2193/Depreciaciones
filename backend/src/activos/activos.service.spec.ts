@@ -31,6 +31,8 @@ const ACTIVO: Activo = {
   fechaCrea: '2025-12-12',
   usuarioMod: null,
   fechaMod: null,
+  trasladadoA: null,
+  observacion: null,
   depreciacionAcumulada: 1493.15,
   valorLibros: 88095.24,
   mesesGenerados: 10,
@@ -50,6 +52,7 @@ const DATOS = {
   modelo: null,
   serie: null,
   anio: null,
+  mesProcesoAjuste: null,
 };
 
 function crear(repoParcial: Record<string, unknown> = {}) {
@@ -62,6 +65,10 @@ function crear(repoParcial: Record<string, unknown> = {}) {
     regenerar: vi.fn().mockResolvedValue('0'),
     otrosPorcentajes: vi.fn().mockResolvedValue([]),
     insertarOtroPorcentaje: vi.fn().mockResolvedValue(undefined),
+    periodosDelMesDeProceso: vi.fn().mockResolvedValue({ porFechaFinal: 1, queIniciaElDia1: 1 }),
+    infoTraslado: vi.fn().mockResolvedValue({ mesesGenerados: 10, ultimoPeriodo: 202610, siguientePeriodo: 202611 }),
+    empleado: vi.fn().mockResolvedValue({ codigo: 1234, nombre: 'X' }),
+    trasladar: vi.fn().mockResolvedValue(3065),
     ...repoParcial,
   };
   const bitacora = { registrar: vi.fn() };
@@ -74,7 +81,11 @@ describe('ActivosService.crear', () => {
     const res = await service.crear({ ...DATOS, relacion: 30 }, 'u');
     expect(res).toEqual({ correlativo: 3065, factor: 0.016667, valorMensual: 1493.15 });
     expect(repo.existePeriodoQueIniciaEl).toHaveBeenCalledWith('2025-12-01');
-    expect(repo.crear).toHaveBeenCalledWith(expect.objectContaining({ factor: 0.016667, valorMensual: 1493.15, relacion: 30 }), 'u');
+    expect(repo.crear).toHaveBeenCalledWith(
+      expect.objectContaining({ factor: 0.016667, valorMensual: 1493.15, relacion: 30 }),
+      'u',
+      null,
+    );
   });
 
   it('rechaza si no existe el periodo del mes de inicio (no se generaría depreciación)', async () => {
@@ -177,5 +188,98 @@ describe('ActivosService otros porcentajes', () => {
     const { service, repo } = crear({ otrosPorcentajes: vi.fn().mockResolvedValue([{ ...tramo, correlativo: 1 }]) });
     await service.regenerarConOtroPorcentaje(3064, 'u');
     expect(repo.regenerar).toHaveBeenCalledWith(3064, 'dep_generacion_porcant', '2020-01-31', 'u');
+  });
+});
+
+describe('ActivosService.crear con ajuste (DEP_GENERACION_DEPRE_AJUSTE2)', () => {
+  const HOY = new Date(2026, 9, 8); // 8 de octubre de 2026
+  const conAjuste = (mes: string, extra = {}) => ({ ...DATOS, relacion: 30, fechaInicio: '2024-01-15', mesProcesoAjuste: mes, ...extra });
+
+  it('calcula los meses atrasados y llama al ajuste con el mes de proceso', async () => {
+    const { service, repo } = crear({ obtener: vi.fn().mockResolvedValue({ ...ACTIVO, mesesGenerados: 1 }) });
+    const res = await service.crear(conAjuste('2026-10'), 'u', HOY);
+    // Feb-2024 .. Oct-2026 = 33 meses
+    expect(res).toMatchObject({ ajuste: { meses: 33, monto: Math.round(33 * 1493.15 * 100) / 100, mesProceso: '2026-10' } });
+    expect(repo.crear).toHaveBeenCalledWith(expect.any(Object), 'u', '2026-10');
+    expect(repo.existePeriodoQueIniciaEl).not.toHaveBeenCalled();
+  });
+
+  it('rechaza mes de proceso igual o anterior al de inicio (el procedimiento no insertaría nada)', async () => {
+    const { service, repo } = crear();
+    await expect(service.crear(conAjuste('2024-01'), 'u', HOY)).rejects.toThrow('posterior al mes de inicio');
+    expect(repo.crear).not.toHaveBeenCalled();
+  });
+
+  it('rechaza mes de proceso futuro', async () => {
+    const { service } = crear();
+    await expect(service.crear(conAjuste('2026-11'), 'u', HOY)).rejects.toThrow('no puede ser futuro');
+  });
+
+  it('rechaza si el ajuste supera el valor depreciable', async () => {
+    const { service } = crear();
+    await expect(service.crear(conAjuste('2026-10', { fechaInicio: '2015-01-01' }), 'u', HOY)).rejects.toThrow(
+      'supera el valor depreciable',
+    );
+  });
+
+  it('rechaza si el periodo del mes de proceso tiene fechas incorrectas (p. ej. 202610 con final en 2029)', async () => {
+    const { service } = crear({ periodosDelMesDeProceso: vi.fn().mockResolvedValue({ porFechaFinal: 0, queIniciaElDia1: 1 }) });
+    await expect(service.crear(conAjuste('2026-10'), 'u', HOY)).rejects.toThrow('no existe o tiene fechas incorrectas');
+  });
+
+  it('detecta cuando AJUSTE2 responde OK pero AJUSTE3 revirtió todo', async () => {
+    const { service } = crear({ obtener: vi.fn().mockResolvedValue(null) });
+    await expect(service.crear(conAjuste('2026-10'), 'u', HOY)).rejects.toBeInstanceOf(InternalServerErrorException);
+  });
+});
+
+describe('ActivosService traslado (DEP_GENERACION_TRASLADO)', () => {
+  const doc = { relacion: 28, tipo: 1 as const, documento: 'OF-1', fecha: '2026-10-08', autoriza: 1234, motivo: 'Cambio de cuenta' };
+
+  it('vista previa con las fórmulas del procedimiento', async () => {
+    const { service } = crear();
+    const v = await service.vistaTraslado(3064, 28);
+    expect(v).toEqual({
+      porcentaje: 20,
+      factor: 0.016667,
+      valorMensual: 1493.15,
+      meses: 11,
+      depreciacionAcumulada: 16424.65,
+      valorLibros: 73163.74,
+      periodo: 202611,
+    });
+  });
+
+  it('traslada y devuelve el activo nuevo', async () => {
+    const { service, repo } = crear();
+    await expect(service.trasladar(3064, doc, 'u')).resolves.toEqual({ activoNuevo: 3065 });
+    expect(repo.trasladar).toHaveBeenCalledWith(3064, 28, doc, 'u');
+  });
+
+  it('no traslada activos que no están en estado A (el procedimiento respondería OK sin hacer nada)', async () => {
+    const { service, repo } = crear({ obtener: vi.fn().mockResolvedValue({ ...ACTIVO, estado: 'D', trasladadoA: 3070 }) });
+    await expect(service.trasladar(3064, doc, 'u')).rejects.toThrow('ya fue trasladado al No. 3070');
+    expect(repo.trasladar).not.toHaveBeenCalled();
+  });
+
+  it('no traslada a la misma relación', async () => {
+    const { service } = crear();
+    await expect(service.trasladar(3064, { ...doc, relacion: 30 }, 'u')).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('exige depreciación generada', async () => {
+    const { service } = crear({ infoTraslado: vi.fn().mockResolvedValue({ mesesGenerados: 0, ultimoPeriodo: null, siguientePeriodo: null }) });
+    await expect(service.trasladar(3064, doc, 'u')).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('exige que exista el empleado que autoriza', async () => {
+    const { service, repo } = crear({ empleado: vi.fn().mockResolvedValue(null) });
+    await expect(service.trasladar(3064, doc, 'u')).rejects.toThrow('No existe el empleado 1234');
+    expect(repo.trasladar).not.toHaveBeenCalled();
+  });
+
+  it('si el procedimiento falla no se hizo ningún cambio', async () => {
+    const { service } = crear({ trasladar: vi.fn().mockRejectedValue(new ErrorGeneracion('-09 -5')) });
+    await expect(service.trasladar(3064, doc, 'u')).rejects.toThrow('No se realizó ningún cambio');
   });
 });

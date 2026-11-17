@@ -52,20 +52,20 @@ export const MENU: GrupoMenu[] = [
       migrado('Registro de activos', '/activos/registro', [A, O]),
       migrado('Modificación de activos', '/activos/modificacion', [A, O]),
       migrado('Otros porcentajes activos', '/activos/otros-porcentajes', [A, O]),
-      pendiente('Traslado de activos', '/activos/traslado', [A, O]),
+      migrado('Traslado de activos', '/activos/traslado', [A, O]),
     ],
   },
   {
     titulo: 'Procesos',
-    opciones: [pendiente('Generar depreciación', '/procesos/generar', [A, O])],
+    opciones: [migrado('Generar depreciación', '/procesos/generar', [A, O])],
   },
   {
     titulo: 'Consultas',
     opciones: [
-      pendiente('Buscador de activos', '/consultas/buscar-activo', [A, O, C, AU]),
-      pendiente('Consulta relación cuentas', '/consultas/activos', [A, O, C, AU]),
-      pendiente('Consulta de cuenta x activos', '/consultas/cuenta', [A, O, C, AU]),
-      pendiente('Consulta de depreciaciones', '/consultas/depreciaciones', [A, O, C, AU]),
+      migrado('Buscador de activos', '/consultas/buscar-activo', [A, O, C, AU]),
+      migrado('Consulta relación cuentas', '/consultas/activos', [A, O, C, AU]),
+      migrado('Consulta de cuenta x activos', '/consultas/cuenta', [A, O, C, AU]),
+      migrado('Consulta de depreciaciones', '/consultas/depreciaciones', [A, O, C, AU]),
     ],
   },
   {

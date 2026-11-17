@@ -429,6 +429,22 @@ select {
 }
 
 /* ---------- Activos ---------- */
+fieldset.ajuste {
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 1.5rem;
+}
+
+fieldset.ajuste .nota {
+  flex-basis: 100%;
+  margin: 0;
+}
+
 textarea {
   font: inherit;
   padding: 0.55rem 0.7rem;
@@ -562,6 +578,75 @@ textarea {
 
 .fila-clic {
   cursor: pointer;
+}
+
+.tarjeta-boton {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tarjeta-boton:disabled {
+  cursor: default;
+}
+
+.tarjeta-boton:hover:not(:disabled) {
+  border-color: var(--azul-claro);
+}
+
+.tarjeta-boton .tarjeta-valor {
+  display: block;
+}
+
+.tarjeta-alerta {
+  border-color: #fedf89;
+  background: #fffaeb;
+}
+
+.datos-activo {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem 1.25rem;
+  margin: 0;
+  padding: 1rem 1.25rem;
+}
+
+.datos-activo dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--texto-suave);
+}
+
+.datos-activo dd {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.acciones-fila {
+  display: inline-flex;
+  gap: 1rem;
+  white-space: nowrap;
+}
+
+.progreso {
+  height: 12px;
+  border-radius: 999px;
+  background: #e8eef7;
+  overflow: hidden;
+}
+
+.progreso-barra {
+  height: 100%;
+  background: linear-gradient(90deg, var(--azul-claro), var(--azul));
+  transition: width 0.4s ease;
+}
+
+.lista-aviso {
+  margin: 0;
+  padding-left: 1.2rem;
+  flex-basis: 100%;
 }
 
 .fila-clic:focus-visible {

@@ -5,10 +5,20 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { CatalogosModule } from './catalogos/catalogos.module.js';
+import { ConsultasModule } from './consultas/consultas.module.js';
 import { DatabaseModule } from './database/database.module.js';
+import { ProcesosModule } from './procesos/procesos.module.js';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, AuthModule, CatalogosModule, ActivosModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    DatabaseModule,
+    AuthModule,
+    CatalogosModule,
+    ActivosModule,
+    ProcesosModule,
+    ConsultasModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

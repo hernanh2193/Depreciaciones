@@ -46,6 +46,8 @@ export interface Activo {
   fechaCrea: string | null
   usuarioMod: string | null
   fechaMod: string | null
+  trasladadoA: number | null
+  observacion: string | null
   depreciacionAcumulada: number
   valorLibros: number | null
   mesesGenerados: number
@@ -95,6 +97,44 @@ export interface DatosActivo {
   anio: number | ''
 }
 
+export interface VistaTraslado {
+  porcentaje: number
+  factor: number
+  valorMensual: number
+  meses: number
+  depreciacionAcumulada: number
+  valorLibros: number
+  periodo: number | null
+}
+
+export interface DocumentoTraslado {
+  activoAnterior: number
+  activoNuevo: number
+  tipo: number | null
+  documento: string | null
+  fecha: string | null
+  autoriza: number | null
+  motivo: string | null
+  usuario: string | null
+  fechaRegistro: string | null
+}
+
+export interface DatosTraslado {
+  relacion: number
+  tipo: 1 | 2
+  documento: string
+  fecha: string
+  autoriza: number
+  motivo: string
+}
+
+export interface ResultadoRegistro {
+  correlativo: number
+  factor: number
+  valorMensual: number
+  ajuste?: { meses: number; monto: number; mesProceso: string; mesesGenerados: number }
+}
+
 const enviar = <T>(metodo: 'POST' | 'PUT', ruta: string, body?: unknown) =>
   api<T>(ruta, { method: metodo, body: body === undefined ? undefined : JSON.stringify(body) })
 
@@ -107,8 +147,8 @@ export const activosApi = {
     return api<ActivoResumen[]>(`/activos?${p}`)
   },
   obtener: (id: number) => api<Activo>(`/activos/${id}`),
-  crear: (d: DatosActivo & { relacion: number }) =>
-    enviar<{ correlativo: number; factor: number; valorMensual: number }>('POST', '/activos', d),
+  crear: (d: DatosActivo & { relacion: number; mesProcesoAjuste: string | null }) =>
+    enviar<ResultadoRegistro>('POST', '/activos', d),
   actualizar: (id: number, d: DatosActivo & { estado: EstadoActivo }) =>
     enviar<{ factor: number; valorMensual: number; regenerarSugerido: boolean }>('PUT', `/activos/${id}`, d),
   detalle: (id: number) => api<DetalleDepreciacion[]>(`/activos/${id}/detalle`),
@@ -117,6 +157,16 @@ export const activosApi = {
   crearOtroPorcentaje: (id: number, o: Omit<OtroPorcentaje, 'correlativo'>) =>
     enviar<void>('POST', `/activos/${id}/otros-porcentajes`, o),
   regenerarConOtroPorcentaje: (id: number) => enviar<Activo>('POST', `/activos/${id}/otros-porcentajes/regenerar`),
+  empleado: (codigo: number) => api<{ codigo: number; nombre: string }>(`/activos/empleados/${codigo}`),
+  vistaTraslado: (id: number, relacion: number) => api<VistaTraslado>(`/activos/${id}/traslado/vista?relacion=${relacion}`),
+  documentosTraslado: (id: number) => api<DocumentoTraslado[]>(`/activos/${id}/traslados`),
+  trasladar: (id: number, d: DatosTraslado) => enviar<{ activoNuevo: number }>('POST', `/activos/${id}/traslado`, d),
+}
+
+/** Meses del ajuste: del mes siguiente al de inicio hasta el mes de proceso (igual que AJUSTE2). */
+export function mesesAjuste(fechaInicio: string, mesProceso: string): number {
+  const i = (s: string) => Number(s.slice(0, 4)) * 12 + Number(s.slice(5, 7))
+  return i(mesProceso) - i(fechaInicio)
 }
 
 /** Mismo cálculo que el backend (y que el sistema Java), para mostrar la vista previa. */

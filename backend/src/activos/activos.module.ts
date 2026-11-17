@@ -6,5 +6,7 @@ import { ActivosService } from './activos.service.js';
 @Module({
   controllers: [ActivosController],
   providers: [ActivosService, ActivosRepository],
+  // Las consultas (solo lectura) reutilizan las mismas consultas de activos
+  exports: [ActivosRepository],
 })
 export class ActivosModule {}

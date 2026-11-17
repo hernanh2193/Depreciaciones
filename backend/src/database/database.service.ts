@@ -37,6 +37,12 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       connectString: `${host}:${port}/${service}`,
       poolMin: 1,
       poolMax: 10,
+      // Los procedimientos hacen TO_DATE(<parámetro DATE>, 'DD/MM/RRRR'): Oracle convierte la fecha a texto
+      // con el formato de la sesión. Se fija para no depender de la configuración regional del servidor.
+      // oracledb exige invocar el callback (no basta con una función async: la conexión nunca se entregaría).
+      sessionCallback: (conn: oracledb.Connection, _tag: string, listo: (err?: Error) => void) => {
+        conn.execute(`ALTER SESSION SET NLS_DATE_FORMAT = 'DD/MM/RRRR'`).then(() => listo(), listo);
+      },
     });
     this.logger.log(`Pool Oracle creado (${host}:${port}/${service})`);
   }

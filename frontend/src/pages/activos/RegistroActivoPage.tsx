@@ -1,27 +1,43 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import { activosApi, factorMensual, valorMensual } from '../../api/activos'
+import { activosApi, factorMensual, mesesAjuste, valorMensual, type ResultadoRegistro } from '../../api/activos'
 import { ApiError } from '../../api/client'
 import { useDatos } from '../../hooks/useDatos'
 import { moneda, porcentaje } from '../../utils/formato'
 import { CamposActivo } from './CamposActivo'
 import { aDatos, FORM_VACIO, type FormActivo } from './formActivo'
 
+const mesActual = () => {
+  const h = new Date()
+  return `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}`
+}
+
+const nombreMes = (yyyyMm: string) => yyyyMm.split('-').reverse().join('/')
+
 export function RegistroActivoPage() {
   const relaciones = useDatos(activosApi.relaciones)
   const [relacion, setRelacion] = useState('')
   const [form, setForm] = useState<FormActivo>(FORM_VACIO)
+  const [conAjuste, setConAjuste] = useState(false)
+  const [mesProceso, setMesProceso] = useState(mesActual)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
-  const [registrado, setRegistrado] = useState<{ correlativo: number; valorMensual: number } | null>(null)
+  const [registrado, setRegistrado] = useState<ResultadoRegistro | null>(null)
 
   const seleccionada = relaciones.datos?.find((r) => String(r.codigo) === relacion)
   const vista = useMemo(() => {
     const valor = Number(form.valorOriginal)
     if (!seleccionada || !(valor > 1)) return null
     const factor = factorMensual(seleccionada.porcentaje)
-    return { factor, mensual: valorMensual(valor, factor), meses: Math.round(valor / valorMensual(valor, factor)) }
-  }, [seleccionada, form.valorOriginal])
+    const mensual = valorMensual(valor, factor)
+    const meses = conAjuste && form.fechaInicio && mesProceso ? mesesAjuste(form.fechaInicio, mesProceso) : null
+    return {
+      factor,
+      mensual,
+      mesesTotales: mensual > 0 ? Math.round(valor / mensual) : 0,
+      ajuste: meses === null ? null : { meses, monto: Math.round(meses * mensual * 100) / 100 },
+    }
+  }, [seleccionada, form.valorOriginal, form.fechaInicio, conAjuste, mesProceso])
 
   async function guardar(e: FormEvent) {
     e.preventDefault()
@@ -29,10 +45,15 @@ export function RegistroActivoPage() {
     setRegistrado(null)
     setEnviando(true)
     try {
-      const r = await activosApi.crear({ ...aDatos(form), relacion: Number(relacion) })
-      setRegistrado({ correlativo: r.correlativo, valorMensual: r.valorMensual })
+      const r = await activosApi.crear({
+        ...aDatos(form),
+        relacion: Number(relacion),
+        mesProcesoAjuste: conAjuste ? mesProceso : null,
+      })
+      setRegistrado(r)
       setForm(FORM_VACIO)
       setRelacion('')
+      setConAjuste(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'No se pudo conectar con el servidor')
@@ -54,7 +75,12 @@ export function RegistroActivoPage() {
       {registrado && (
         <p className="msg-ok">
           Activo <strong>{registrado.correlativo}</strong> registrado con depreciación mensual de{' '}
-          {moneda(registrado.valorMensual)}. <Link to={`/activos/${registrado.correlativo}`}>Ver ficha del activo</Link>
+          {moneda(registrado.valorMensual)}
+          {registrado.ajuste &&
+            ` y ajuste de ${registrado.ajuste.meses} meses (${moneda(registrado.ajuste.monto)}) en ${nombreMes(
+              registrado.ajuste.mesProceso,
+            )}; ${registrado.ajuste.mesesGenerados} registros de depreciación generados`}
+          . <Link to={`/activos/${registrado.correlativo}`}>Ver ficha del activo</Link>
         </p>
       )}
 
@@ -74,6 +100,25 @@ export function RegistroActivoPage() {
 
         <CamposActivo form={form} onChange={setForm} />
 
+        <fieldset className="col-completa ajuste">
+          <label className="check">
+            <input type="checkbox" checked={conAjuste} onChange={(e) => setConAjuste(e.target.checked)} />
+            Registro con ajuste (activo registrado con atraso)
+          </label>
+          {conAjuste && (
+            <>
+              <p className="nota">
+                La depreciación de los meses atrasados se registra en <strong>un solo movimiento</strong> en el mes de
+                proceso ("AJUSTE DE DEPRECIACION POR n MESES") y a partir del mes siguiente continúa mes a mes.
+              </p>
+              <label>
+                Mes de proceso del ajuste
+                <input type="month" value={mesProceso} max={mesActual()} onChange={(e) => setMesProceso(e.target.value)} required />
+              </label>
+            </>
+          )}
+        </fieldset>
+
         <div className="resumen-calculo col-completa">
           <div>
             <span>Porcentaje anual</span>
@@ -89,8 +134,16 @@ export function RegistroActivoPage() {
           </div>
           <div>
             <span>Meses aproximados</span>
-            <strong>{vista ? vista.meses : '—'}</strong>
+            <strong>{vista ? vista.mesesTotales : '—'}</strong>
           </div>
+          {vista?.ajuste && (
+            <div>
+              <span>Ajuste</span>
+              <strong>
+                {vista.ajuste.meses > 0 ? `${vista.ajuste.meses} meses · ${moneda(vista.ajuste.monto)}` : 'Mes no válido'}
+              </strong>
+            </div>
+          )}
         </div>
 
         {error && <p className="msg-error col-completa">{error}</p>}
