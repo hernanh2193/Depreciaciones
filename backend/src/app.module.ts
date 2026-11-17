@@ -8,6 +8,7 @@ import { CatalogosModule } from './catalogos/catalogos.module.js';
 import { ConsultasModule } from './consultas/consultas.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { ProcesosModule } from './procesos/procesos.module.js';
+import { ReportesModule } from './reportes/reportes.module.js';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ProcesosModule } from './procesos/procesos.module.js';
     ActivosModule,
     ProcesosModule,
     ConsultasModule,
+    ReportesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
