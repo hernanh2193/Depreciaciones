@@ -15,6 +15,10 @@ import { LoginPage } from './pages/LoginPage'
 import { ConsultaActivoPage } from './pages/consultas/ConsultaActivoPage'
 import { ConsultaActivosPage } from './pages/consultas/ConsultaActivosPage'
 import { ConsultaDepreciacionesPage } from './pages/consultas/ConsultaDepreciacionesPage'
+import { GraficaComprasPage } from './pages/graficas/GraficaComprasPage'
+import { GraficaCuentaPage } from './pages/graficas/GraficaCuentaPage'
+import { UsuarioFormPage } from './pages/admin/UsuarioFormPage'
+import { UsuariosPage } from './pages/admin/UsuariosPage'
 import { PendientePage } from './pages/PendientePage'
 import { ReporteRuta } from './pages/reportes/ReporteRuta'
 import { GenerarDepreciacionPage } from './pages/procesos/GenerarDepreciacionPage'
@@ -124,6 +128,10 @@ function App() {
             <Route path="consultas/depreciaciones" element={<ConsultaDepreciacionesPage />} />
             <Route path="consultas/activo/:id" element={<ConsultaActivoPage />} />
             <Route path="reportes/:clave" element={<ReporteRuta />} />
+            <Route path="admin/usuarios" element={<UsuariosPage />} />
+            <Route path="admin/usuarios/:codigo" element={<UsuarioFormPage />} />
+            <Route path="graficas/cuenta" element={<GraficaCuentaPage />} />
+            <Route path="graficas/compras" element={<GraficaComprasPage />} />
             {/* Las opciones aún no migradas caen aquí */}
             <Route path="*" element={<PendientePage />} />
           </Route>

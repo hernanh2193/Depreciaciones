@@ -7,8 +7,10 @@ import { AuthModule } from './auth/auth.module.js';
 import { CatalogosModule } from './catalogos/catalogos.module.js';
 import { ConsultasModule } from './consultas/consultas.module.js';
 import { DatabaseModule } from './database/database.module.js';
+import { GraficasModule } from './graficas/graficas.module.js';
 import { ProcesosModule } from './procesos/procesos.module.js';
 import { ReportesModule } from './reportes/reportes.module.js';
+import { UsuariosModule } from './usuarios/usuarios.module.js';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { ReportesModule } from './reportes/reportes.module.js';
     ProcesosModule,
     ConsultasModule,
     ReportesModule,
+    GraficasModule,
+    UsuariosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
